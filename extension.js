@@ -546,10 +546,23 @@ function getPdfTemplateOverrides(uri, frontMatter) {
 
   if (frontMatter.data.footer.pageNumber === true) {
     overrides.displayHeaderFooter = true;
-    overrides.footerTemplate = "<div style=\"font-size: 9px; margin: 0 auto;\"><span class='pageNumber'></span> / <span class='totalPages'></span></div>";
+    overrides.footerTemplate = buildFrontMatterFooterTemplate(frontMatter.data.footer, uri.fsPath);
   }
 
   return overrides;
+}
+
+function buildFrontMatterFooterTemplate(footerOptions, filename) {
+  var footerHeight = 24;
+  var pageNumberHtml = "<span class='pageNumber'></span> / <span class='totalPages'></span>";
+  var logoHtml = '';
+
+  if (footerOptions.logo) {
+    var logoHref = convertImgPath(footerOptions.logo, filename);
+    logoHtml = "<div style=\"position: absolute; left: 1cm; top: 0; height: " + footerHeight + "px; display: flex; align-items: center;\"><img src=\"" + logoHref + "\" style=\"height: 100%; width: auto; object-fit: contain;\" /></div>";
+  }
+
+  return "<div style=\"width: 100%; height: " + footerHeight + "px; padding: 0 1cm; position: relative; font-size: 9px;\">" + logoHtml + "<div style=\"width: 100%; text-align: center; line-height: " + footerHeight + "px;\">" + pageNumberHtml + "</div></div>";
 }
 
 function isExistsPath(path) {
