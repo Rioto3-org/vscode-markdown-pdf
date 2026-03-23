@@ -130,6 +130,7 @@ async function markdownPdfViaApi() {
 
     var exportFilename = getOutputDir(mdfilename.replace(ext, '.pdf'), uri);
     var text = editor.document.getText();
+    text = resolveApiMarkdownAssets(text, mdfilename);
     var frontMatter = getFrontMatter(text);
     var resolvedFrontMatter = resolveApiFrontMatter(frontMatter, mdfilename);
     var response = await fetch('http://localhost:3000/render/pdf', {
@@ -579,6 +580,30 @@ function transformTemplate(templateText) {
 function getFrontMatter(text) {
   var grayMatter = require("gray-matter");
   return grayMatter(text);
+}
+
+function resolveApiMarkdownAssets(text, filename) {
+  if (!text) {
+    return text;
+  }
+
+  text = text.replace(/!\[([^\]]*)\]\(([^)\s]+)(\s+\"[^\"]*\")?\)/g, function (match, alt, src, titlePart) {
+    var resolved = resolveApiAssetUrl(src, filename);
+    if (!resolved) {
+      return match;
+    }
+    return '![' + alt + '](' + resolved + (titlePart || '') + ')';
+  });
+
+  text = text.replace(/(<img\b[^>]*\bsrc=["'])([^"']+)(["'][^>]*>)/gi, function (match, prefix, src, suffix) {
+    var resolved = resolveApiAssetUrl(src, filename);
+    if (!resolved) {
+      return match;
+    }
+    return prefix + resolved + suffix;
+  });
+
+  return text;
 }
 
 function resolveApiFrontMatter(frontMatter, filename) {
