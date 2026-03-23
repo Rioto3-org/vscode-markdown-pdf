@@ -563,6 +563,9 @@ function applyFrontMatterToOptions(options, frontMatter, sourcePath) {
   if (hasFooter && frontMatter.data.footer.logo) {
     nextOptions.pdf.displayHeaderFooter = true;
     nextOptions.pdf.footerTemplate = buildFrontMatterFooterTemplate(frontMatter, sourcePath);
+    nextOptions.pdf.margin = Object.assign({}, nextOptions.pdf.margin, {
+      bottom: '24mm'
+    });
   }
 
   return nextOptions;
