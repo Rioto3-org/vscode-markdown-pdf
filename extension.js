@@ -537,7 +537,7 @@ function getPdfTemplateOverrides(uri, frontMatter) {
   var overrides = {
     displayHeaderFooter: vscode.workspace.getConfiguration('markdown-pdf', uri)['displayHeaderFooter'],
     headerTemplate: vscode.workspace.getConfiguration('markdown-pdf', uri)['headerTemplate'] || '',
-    footerTemplate: vscode.workspace.getConfiguration('markdown-pdf', uri)['footerTemplate'] || ''
+    footerTemplate: '<div></div>'
   };
 
   if (!frontMatter || !frontMatter.data || !frontMatter.data.footer) {
