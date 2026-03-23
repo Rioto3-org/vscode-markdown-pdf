@@ -317,7 +317,7 @@
         },
         "markdown-pdf.headerTemplate": {
           "type": "string",
-          "default": "",
+          "default": "<div></div>",
           "description": "pdf only. HTML template for the print header.",
           "scope": "resource"
         },
