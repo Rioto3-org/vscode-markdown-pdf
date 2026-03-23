@@ -136,6 +136,16 @@ function inlineCssAssets(css, cssFilename) {
   });
 }
 
+function getFontDataUrl(fontFilename) {
+  if (!fs.existsSync(fontFilename)) {
+    return '';
+  }
+
+  const mimeType = getMimeType(fontFilename);
+  const base64 = fs.readFileSync(fontFilename).toString('base64');
+  return `data:${mimeType};base64,${base64}`;
+}
+
 function makeCss(filename) {
   const css = readFile(filename);
   if (!css) {
@@ -143,6 +153,35 @@ function makeCss(filename) {
   }
 
   return `\n<style>\n${inlineCssAssets(css, filename)}\n</style>\n`;
+}
+
+function buildForcedFontStyle() {
+  const regularFont = getFontDataUrl(path.join(repoRoot, 'styles', 'Noto_Sans_JP', 'static', 'NotoSansJP-Regular.ttf'));
+  const boldFont = getFontDataUrl(path.join(repoRoot, 'styles', 'Noto_Sans_JP', 'static', 'NotoSansJP-Bold.ttf'));
+
+  if (!regularFont || !boldFont) {
+    return '';
+  }
+
+  return `\n<style>
+@font-face {
+  font-family: "Noto Sans JP";
+  font-style: normal;
+  font-weight: 400;
+  src: url("${regularFont}") format("truetype");
+}
+
+@font-face {
+  font-family: "Noto Sans JP";
+  font-style: normal;
+  font-weight: 700;
+  src: url("${boldFont}") format("truetype");
+}
+
+html, body, p, li, blockquote, table, h1, h2, h3, h4, h5, h6 {
+  font-family: "Noto Sans JP" !important;
+}
+</style>\n`;
 }
 
 function resolveFileUri(sourcePath, href, stylesRelativePathFile) {
@@ -292,6 +331,8 @@ function readStyles(sourcePath, options) {
       style += `<link rel="stylesheet" href="${resolveFileUri(sourcePath, href, options.stylesRelativePathFile)}" type="text/css">`;
     });
   }
+
+  style += buildForcedFontStyle();
 
   return style;
 }
