@@ -560,11 +560,11 @@ function buildFrontMatterFooterTemplate(footerOptions, filename) {
   if (footerOptions.logo) {
     var logoHref = convertImagePathToDataUrl(footerOptions.logo, filename);
     if (logoHref) {
-      logoHtml = "<div style=\"float: right; height: " + footerHeight + "px; display: flex; align-items: center;\"><img src=\"" + logoHref + "\" style=\"display: block; max-height: 100%; width: auto;\" /></div>";
+      logoHtml = "<div style=\"height: " + footerHeight + "px; text-align: center;\"><img src=\"" + logoHref + "\" style=\"display: inline-block; max-height: 100%; width: auto; vertical-align: top;\" /></div>";
     }
   }
 
-  return "<div style=\"width: 100%; height: " + footerHeight + "px; padding: 0 1cm; font-size: 9px;\">" + logoHtml + "<div style=\"height: " + footerHeight + "px; text-align: center; line-height: " + footerHeight + "px;\">" + pageNumberHtml + "</div></div>";
+  return "<div style=\"width: 100%; padding: 0 1cm; font-size: 9px;\"><div style=\"height: " + footerHeight + "px; text-align: center; line-height: " + footerHeight + "px;\">" + pageNumberHtml + "</div>" + logoHtml + "</div>";
 }
 
 function convertImagePathToDataUrl(src, filename) {
