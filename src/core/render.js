@@ -448,6 +448,12 @@ function buildMermaidScriptTag(options) {
   if (!mermaidScript) {
     return '';
   }
+
+  if (mermaidScript.startsWith('file://')) {
+    const scriptContent = readFile(mermaidScript);
+    return scriptContent ? `<script>\n${scriptContent}\n</script>` : '';
+  }
+
   return `<script src="${mermaidScript}"></script>`;
 }
 
@@ -473,6 +479,14 @@ function getDefaultMermaidScript() {
 }
 
 async function renderMermaidDiagrams(page) {
+  const status = await page.evaluate(() => {
+    return {
+      hasMermaidGlobal: typeof mermaid !== 'undefined',
+      mermaidNodeCount: document.querySelectorAll('.mermaid').length
+    };
+  });
+  console.log('[api:mermaid:status]', status);
+
   const hasMermaid = await page.evaluate(() => {
     return typeof mermaid !== 'undefined' && document.querySelector('.mermaid');
   });
@@ -585,6 +599,12 @@ async function renderPdf({ markdown, sourcePath, options = {}, frontMatter = nul
 
   try {
     const page = await browser.newPage();
+    page.on('console', (message) => {
+      console.log('[api:page:console]', message.type(), message.text());
+    });
+    page.on('pageerror', (error) => {
+      console.error('[api:page:error]', error && error.stack ? error.stack : error);
+    });
     await page.setContent(documentHtml, { waitUntil: 'load' });
     await new Promise((resolve) => setTimeout(resolve, 300));
     await renderMermaidDiagrams(page);
