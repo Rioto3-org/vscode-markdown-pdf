@@ -90,9 +90,10 @@ async function markdownPdf(option_type) {
         if (types_format.indexOf(type) >= 0) {
           filename = mdfilename.replace(ext, '.' + type);
           var text = editor.document.getText();
-          var content = convertMarkdownToHtml(mdfilename, type, text);
+          var frontMatter = getFrontMatter(text);
+          var content = convertMarkdownToHtml(mdfilename, type, text, frontMatter);
           var html = makeHtml(content, uri);
-          await exportPdf(html, filename, type, uri);
+          await exportPdf(html, filename, type, uri, frontMatter);
         } else {
           showErrorMessage('markdownPdf().2 Supported formats: html, pdf, png, jpeg.');
           return;
@@ -147,9 +148,8 @@ function isMarkdownPdfOnSaveExclude() {
 /*
  * convert markdown to html (markdown-it)
  */
-function convertMarkdownToHtml(filename, type, text) {
-  var grayMatter = require("gray-matter");
-  var matterParts = grayMatter(text);
+function convertMarkdownToHtml(filename, type, text, matterParts) {
+  matterParts = matterParts || getFrontMatter(text);
 
   try {
     try {
@@ -364,7 +364,7 @@ function exportHtml(data, filename) {
 /*
  * export a html to a pdf file (html-pdf)
  */
-function exportPdf(data, filename, type, uri) {
+function exportPdf(data, filename, type, uri, frontMatter) {
 
   if (!INSTALL_CHECK) {
     return;
@@ -423,12 +423,13 @@ function exportPdf(data, filename, type, uri) {
           } else {
             landscape_option = false;
           }
+          var pdfOverrides = getPdfTemplateOverrides(uri, frontMatter);
           var options = {
             path: exportFilename,
             scale: vscode.workspace.getConfiguration('markdown-pdf', uri)['scale'],
-            displayHeaderFooter: vscode.workspace.getConfiguration('markdown-pdf', uri)['displayHeaderFooter'],
-            headerTemplate: transformTemplate(vscode.workspace.getConfiguration('markdown-pdf', uri)['headerTemplate'] || ''),
-            footerTemplate: transformTemplate(vscode.workspace.getConfiguration('markdown-pdf', uri)['footerTemplate'] || ''),
+            displayHeaderFooter: pdfOverrides.displayHeaderFooter,
+            headerTemplate: transformTemplate(pdfOverrides.headerTemplate),
+            footerTemplate: transformTemplate(pdfOverrides.footerTemplate),
             printBackground: vscode.workspace.getConfiguration('markdown-pdf', uri)['printBackground'],
             landscape: landscape_option,
             pageRanges: vscode.workspace.getConfiguration('markdown-pdf', uri)['pageRanges'] || '',
@@ -525,6 +526,30 @@ function transformTemplate(templateText) {
   }
 
   return templateText;
+}
+
+function getFrontMatter(text) {
+  var grayMatter = require("gray-matter");
+  return grayMatter(text);
+}
+
+function getPdfTemplateOverrides(uri, frontMatter) {
+  var overrides = {
+    displayHeaderFooter: vscode.workspace.getConfiguration('markdown-pdf', uri)['displayHeaderFooter'],
+    headerTemplate: vscode.workspace.getConfiguration('markdown-pdf', uri)['headerTemplate'] || '',
+    footerTemplate: vscode.workspace.getConfiguration('markdown-pdf', uri)['footerTemplate'] || ''
+  };
+
+  if (!frontMatter || !frontMatter.data || !frontMatter.data.footer) {
+    return overrides;
+  }
+
+  if (frontMatter.data.footer.pageNumber === true) {
+    overrides.displayHeaderFooter = true;
+    overrides.footerTemplate = "<div style=\"font-size: 9px; margin: 0 auto;\"><span class='pageNumber'></span> / <span class='totalPages'></span></div>";
+  }
+
+  return overrides;
 }
 
 function isExistsPath(path) {
