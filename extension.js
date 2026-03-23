@@ -90,9 +90,10 @@ async function markdownPdf(option_type) {
         if (types_format.indexOf(type) >= 0) {
           filename = mdfilename.replace(ext, '.' + type);
           var text = editor.document.getText();
-          var content = convertMarkdownToHtml(mdfilename, type, text);
+          var frontMatter = getFrontMatter(text);
+          var content = convertMarkdownToHtml(mdfilename, type, text, frontMatter);
           var html = makeHtml(content, uri);
-          await exportPdf(html, filename, type, uri);
+          await exportPdf(html, filename, type, uri, frontMatter);
         } else {
           showErrorMessage('markdownPdf().2 Supported formats: html, pdf, png, jpeg.');
           return;
@@ -147,9 +148,8 @@ function isMarkdownPdfOnSaveExclude() {
 /*
  * convert markdown to html (markdown-it)
  */
-function convertMarkdownToHtml(filename, type, text) {
-  var grayMatter = require("gray-matter");
-  var matterParts = grayMatter(text);
+function convertMarkdownToHtml(filename, type, text, matterParts) {
+  matterParts = matterParts || getFrontMatter(text);
 
   try {
     try {
@@ -364,7 +364,7 @@ function exportHtml(data, filename) {
 /*
  * export a html to a pdf file (html-pdf)
  */
-function exportPdf(data, filename, type, uri) {
+function exportPdf(data, filename, type, uri, frontMatter) {
 
   if (!INSTALL_CHECK) {
     return;
@@ -423,12 +423,13 @@ function exportPdf(data, filename, type, uri) {
           } else {
             landscape_option = false;
           }
+          var pdfOverrides = getPdfTemplateOverrides(uri, frontMatter);
           var options = {
             path: exportFilename,
             scale: vscode.workspace.getConfiguration('markdown-pdf', uri)['scale'],
-            displayHeaderFooter: vscode.workspace.getConfiguration('markdown-pdf', uri)['displayHeaderFooter'],
-            headerTemplate: transformTemplate(vscode.workspace.getConfiguration('markdown-pdf', uri)['headerTemplate'] || ''),
-            footerTemplate: transformTemplate(vscode.workspace.getConfiguration('markdown-pdf', uri)['footerTemplate'] || ''),
+            displayHeaderFooter: pdfOverrides.displayHeaderFooter,
+            headerTemplate: transformTemplate(pdfOverrides.headerTemplate),
+            footerTemplate: transformTemplate(pdfOverrides.footerTemplate),
             printBackground: vscode.workspace.getConfiguration('markdown-pdf', uri)['printBackground'],
             landscape: landscape_option,
             pageRanges: vscode.workspace.getConfiguration('markdown-pdf', uri)['pageRanges'] || '',
@@ -525,6 +526,99 @@ function transformTemplate(templateText) {
   }
 
   return templateText;
+}
+
+function getFrontMatter(text) {
+  var grayMatter = require("gray-matter");
+  return grayMatter(text);
+}
+
+function getPdfTemplateOverrides(uri, frontMatter) {
+  var overrides = {
+    displayHeaderFooter: vscode.workspace.getConfiguration('markdown-pdf', uri)['displayHeaderFooter'],
+    headerTemplate: vscode.workspace.getConfiguration('markdown-pdf', uri)['headerTemplate'] || '',
+    footerTemplate: vscode.workspace.getConfiguration('markdown-pdf', uri)['footerTemplate'] || ''
+  };
+
+  if (!frontMatter || !frontMatter.data) {
+    return overrides;
+  }
+
+  var hasFrontMatterHeader = !!frontMatter.data.header;
+  var hasFrontMatterFooter = !!frontMatter.data.footer;
+
+  if (hasFrontMatterHeader || hasFrontMatterFooter) {
+    overrides.headerTemplate = '<div></div>';
+    overrides.footerTemplate = '<div></div>';
+  }
+
+  if (hasFrontMatterHeader && frontMatter.data.header.pageNumber === true) {
+    overrides.displayHeaderFooter = true;
+    overrides.headerTemplate = buildFrontMatterHeaderTemplate();
+  }
+
+  if (hasFrontMatterFooter && frontMatter.data.footer.logo) {
+    overrides.displayHeaderFooter = true;
+    overrides.footerTemplate = buildFrontMatterFooterTemplate(frontMatter.data.footer, uri.fsPath);
+  }
+
+  return overrides;
+}
+
+function buildFrontMatterHeaderTemplate() {
+  return "<div style=\"width: 100%; padding: 0 1cm; font-size: 9px; text-align: right;\"><span class='pageNumber'></span> / <span class='totalPages'></span></div>";
+}
+
+function buildFrontMatterFooterTemplate(footerOptions, filename) {
+  var footerHeight = 14;
+  var logoHtml = '';
+
+  if (footerOptions.logo) {
+    var logoHref = convertImagePathToDataUrl(footerOptions.logo, filename);
+    if (logoHref) {
+      logoHtml = "<div style=\"height: " + footerHeight + "px; text-align: center;\"><img src=\"" + logoHref + "\" style=\"display: inline-block; max-height: 100%; width: auto; vertical-align: top;\" /></div>";
+    }
+  }
+
+  return "<div style=\"width: 100%; padding: 0 1cm; font-size: 9px;\">" + logoHtml + "</div>";
+}
+
+function convertImagePathToDataUrl(src, filename) {
+  try {
+    var href = decodeURIComponent(src).replace(/("|')/g, '');
+    var protocol = url.parse(href).protocol;
+    var resolvedPath = href;
+
+    if (!protocol || path.isAbsolute(href)) {
+      resolvedPath = path.resolve(path.dirname(filename), href);
+    } else if (protocol === 'file:') {
+      resolvedPath = href;
+    } else {
+      return '';
+    }
+
+    var imageData = readFile(resolvedPath, null);
+    if (!imageData) {
+      return '';
+    }
+
+    var ext = path.extname(resolvedPath).toLowerCase();
+    var mimeType = 'image/png';
+    if (ext === '.jpg' || ext === '.jpeg') {
+      mimeType = 'image/jpeg';
+    } else if (ext === '.svg') {
+      mimeType = 'image/svg+xml';
+    } else if (ext === '.gif') {
+      mimeType = 'image/gif';
+    } else if (ext === '.webp') {
+      mimeType = 'image/webp';
+    }
+
+    return 'data:' + mimeType + ';base64,' + imageData.toString('base64');
+  } catch (error) {
+    showErrorMessage('convertImagePathToDataUrl()', error);
+    return '';
+  }
 }
 
 function isExistsPath(path) {
