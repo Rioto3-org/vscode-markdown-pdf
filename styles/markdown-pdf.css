@@ -2,9 +2,28 @@
  * Markdown PDF CSS
  */
 
+@font-face {
+	font-family: "Noto Sans JP";
+	font-style: normal;
+	font-weight: 400;
+	src: url("./Noto_Sans_JP/static/NotoSansJP-Regular.ttf") format("truetype");
+}
+
+@font-face {
+	font-family: "Noto Sans JP";
+	font-style: normal;
+	font-weight: 700;
+	src: url("./Noto_Sans_JP/static/NotoSansJP-Bold.ttf") format("truetype");
+}
+
  body {
-	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	font-family: "Noto Sans JP";
 	padding: 0 12px;
+}
+
+h1, h2, h3, h4, h5 {
+	margin-top: 1.4em;
+	margin-bottom: 0.8em;
 }
 
 pre {

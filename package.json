@@ -1,9 +1,9 @@
 {
-  "name": "markdown-pdf",
-  "displayName": "Markdown PDF",
+  "name": "tubeclip-markdown-pdf",
+  "displayName": "TubeClip Markdown PDF",
   "description": "Convert Markdown to PDF",
   "version": "1.5.0",
-  "publisher": "yzane",
+  "publisher": "Rioto3",
   "icon": "images/icon.png",
   "engines": {
     "vscode": "^1.0.0"
@@ -37,33 +37,8 @@
   "contributes": {
     "commands": [
       {
-        "command": "extension.markdown-pdf.settings",
-        "title": "Markdown PDF: Export (settings.json)",
-        "group": "markdown-pdf"
-      },
-      {
-        "command": "extension.markdown-pdf.pdf",
-        "title": "Markdown PDF: Export (pdf)",
-        "group": "markdown-pdf"
-      },
-      {
-        "command": "extension.markdown-pdf.html",
-        "title": "Markdown PDF: Export (html)",
-        "group": "markdown-pdf"
-      },
-      {
-        "command": "extension.markdown-pdf.png",
-        "title": "Markdown PDF: Export (png)",
-        "group": "markdown-pdf"
-      },
-      {
-        "command": "extension.markdown-pdf.jpeg",
-        "title": "Markdown PDF: Export (jpeg)",
-        "group": "markdown-pdf"
-      },
-      {
-        "command": "extension.markdown-pdf.all",
-        "title": "Markdown PDF: Export (all: pdf, html, png, jpeg)",
+        "command": "extension.markdown-pdf.pdfViaApi",
+        "title": "Markdown PDF: Export via API (pdf)",
         "group": "markdown-pdf"
       }
     ],
@@ -71,59 +46,14 @@
       "commandPalette": [
         {
           "when": "resourceLangId == markdown",
-          "command": "extension.markdown-pdf.settings"
-        },
-        {
-          "when": "resourceLangId == markdown",
-          "command": "extension.markdown-pdf.pdf"
-        },
-        {
-          "when": "resourceLangId == markdown",
-          "command": "extension.markdown-pdf.html"
-        },
-        {
-          "when": "resourceLangId == markdown",
-          "command": "extension.markdown-pdf.png"
-        },
-        {
-          "when": "resourceLangId == markdown",
-          "command": "extension.markdown-pdf.jpeg"
-        },
-        {
-          "when": "resourceLangId == markdown",
-          "command": "extension.markdown-pdf.all"
+          "command": "extension.markdown-pdf.pdfViaApi"
         }
       ],
       "editor/context": [
         {
           "when": "resourceLangId == markdown",
-          "command": "extension.markdown-pdf.settings",
-          "group": "markdown-pdf@1"
-        },
-        {
-          "when": "resourceLangId == markdown",
-          "command": "extension.markdown-pdf.pdf",
+          "command": "extension.markdown-pdf.pdfViaApi",
           "group": "markdown-pdf@2"
-        },
-        {
-          "when": "resourceLangId == markdown",
-          "command": "extension.markdown-pdf.html",
-          "group": "markdown-pdf@3"
-        },
-        {
-          "when": "resourceLangId == markdown",
-          "command": "extension.markdown-pdf.png",
-          "group": "markdown-pdf@4"
-        },
-        {
-          "when": "resourceLangId == markdown",
-          "command": "extension.markdown-pdf.jpeg",
-          "group": "markdown-pdf@5"
-        },
-        {
-          "when": "resourceLangId == markdown",
-          "command": "extension.markdown-pdf.all",
-          "group": "markdown-pdf@6"
         }
       ]
     },
@@ -481,7 +411,8 @@
   },
   "scripts": {
     "vscode:prepublish": "node ./src/compile",
-    "test": "node ./test/runTest.js"
+    "test": "node ./test/runTest.js",
+    "dev:api": "node ./src/server/index.js"
   },
   "devDependencies": {
     "glob": "^7.1.6",
@@ -494,6 +425,7 @@
     "emoji-images": "^0.1.1",
     "gray-matter": "^4.0.2",
     "highlight.js": "^9.18.1",
+    "hono": "^4.12.8",
     "markdown-it": "^10.0.0",
     "markdown-it-checkbox": "^1.1.0",
     "markdown-it-container": "^2.0.0",
@@ -501,9 +433,10 @@
     "markdown-it-include": "^1.1.0",
     "markdown-it-named-headers": "0.0.4",
     "markdown-it-plantuml": "^1.4.1",
+    "mermaid": "^11.13.0",
     "mkdirp": "^1.0.3",
     "mustache": "^4.0.1",
-    "puppeteer-core": "^2.1.1",
+    "puppeteer-core": "^24.40.0",
     "rimraf": "^3.0.2"
   }
 }
