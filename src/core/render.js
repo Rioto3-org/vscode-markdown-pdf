@@ -540,7 +540,7 @@ function buildFrontMatterFooterTemplate(frontMatter, sourcePath) {
     return '<div></div>';
   }
 
-  return `<div style="width: 100%; padding: 0 1cm; font-size: 9px;"><div style="height: 14px; text-align: center;"><img src="${logoHref}" style="display: inline-block; max-height: 100%; width: auto; vertical-align: top;" /></div></div>`;
+  return `<div style="width: 100%; padding: 4px 1cm 0; font-size: 9px;"><div style="height: 14px; text-align: center;"><img src="${logoHref}" style="display: inline-block; max-height: 100%; width: auto; vertical-align: top;" /></div></div>`;
 }
 
 function applyFrontMatterToOptions(options, frontMatter, sourcePath) {
