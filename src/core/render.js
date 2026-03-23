@@ -556,7 +556,8 @@ async function renderPdf({ markdown, sourcePath, options = {}, frontMatter = nul
 
   try {
     const page = await browser.newPage();
-    await page.setContent(documentHtml, { waitUntil: 'networkidle0' });
+    await page.setContent(documentHtml, { waitUntil: 'load' });
+    await page.waitForTimeout(300);
 
     return await page.pdf({
       format: resolvedOptions.pdf.format,
