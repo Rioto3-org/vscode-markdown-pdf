@@ -558,11 +558,51 @@ function buildFrontMatterFooterTemplate(footerOptions, filename) {
   var logoHtml = '';
 
   if (footerOptions.logo) {
-    var logoHref = convertImgPath(footerOptions.logo, filename);
-    logoHtml = "<div style=\"position: absolute; left: 1cm; top: 0; height: " + footerHeight + "px; display: flex; align-items: center;\"><img src=\"" + logoHref + "\" style=\"height: 100%; width: auto; object-fit: contain;\" /></div>";
+    var logoHref = convertImagePathToDataUrl(footerOptions.logo, filename);
+    if (logoHref) {
+      logoHtml = "<div style=\"float: left; height: " + footerHeight + "px;\"><img src=\"" + logoHref + "\" style=\"display: block; height: 100%; width: auto;\" /></div>";
+    }
   }
 
-  return "<div style=\"width: 100%; height: " + footerHeight + "px; padding: 0 1cm; position: relative; font-size: 9px;\">" + logoHtml + "<div style=\"width: 100%; text-align: center; line-height: " + footerHeight + "px;\">" + pageNumberHtml + "</div></div>";
+  return "<div style=\"width: 100%; height: " + footerHeight + "px; padding: 0 1cm; font-size: 9px; line-height: " + footerHeight + "px;\">" + logoHtml + "<div style=\"text-align: center;\">" + pageNumberHtml + "</div></div>";
+}
+
+function convertImagePathToDataUrl(src, filename) {
+  try {
+    var href = decodeURIComponent(src).replace(/("|')/g, '');
+    var protocol = url.parse(href).protocol;
+    var resolvedPath = href;
+
+    if (!protocol || path.isAbsolute(href)) {
+      resolvedPath = path.resolve(path.dirname(filename), href);
+    } else if (protocol === 'file:') {
+      resolvedPath = href;
+    } else {
+      return '';
+    }
+
+    var imageData = readFile(resolvedPath, null);
+    if (!imageData) {
+      return '';
+    }
+
+    var ext = path.extname(resolvedPath).toLowerCase();
+    var mimeType = 'image/png';
+    if (ext === '.jpg' || ext === '.jpeg') {
+      mimeType = 'image/jpeg';
+    } else if (ext === '.svg') {
+      mimeType = 'image/svg+xml';
+    } else if (ext === '.gif') {
+      mimeType = 'image/gif';
+    } else if (ext === '.webp') {
+      mimeType = 'image/webp';
+    }
+
+    return 'data:' + mimeType + ';base64,' + imageData.toString('base64');
+  } catch (error) {
+    showErrorMessage('convertImagePathToDataUrl()', error);
+    return '';
+  }
 }
 
 function isExistsPath(path) {
