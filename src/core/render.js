@@ -472,6 +472,39 @@ function getDefaultMermaidScript() {
   return '';
 }
 
+async function renderMermaidDiagrams(page) {
+  const hasMermaid = await page.evaluate(() => {
+    return typeof mermaid !== 'undefined' && document.querySelector('.mermaid');
+  });
+
+  if (!hasMermaid) {
+    return;
+  }
+
+  await page.evaluate(async () => {
+    if (typeof mermaid === 'undefined') {
+      return;
+    }
+
+    const nodes = Array.from(document.querySelectorAll('.mermaid'));
+    if (nodes.length === 0) {
+      return;
+    }
+
+    await mermaid.run({
+      nodes,
+      suppressErrors: false
+    });
+  });
+
+  await page.waitForFunction(
+    () => Array.from(document.querySelectorAll('.mermaid')).every((node) => {
+      return !!node.querySelector('svg');
+    }),
+    { timeout: 15000 }
+  );
+}
+
 function buildFrontMatterHeaderTemplate(frontMatter) {
   if (frontMatter && frontMatter.data && frontMatter.data.header && frontMatter.data.header.pageNumber === true) {
     return `<div style="width: 100%; padding: 0 1cm; font-size: 9px; text-align: right;"><span class='pageNumber'></span> / <span class='totalPages'></span></div>`;
@@ -554,6 +587,7 @@ async function renderPdf({ markdown, sourcePath, options = {}, frontMatter = nul
     const page = await browser.newPage();
     await page.setContent(documentHtml, { waitUntil: 'load' });
     await new Promise((resolve) => setTimeout(resolve, 300));
+    await renderMermaidDiagrams(page);
 
     return await page.pdf({
       format: resolvedOptions.pdf.format,
