@@ -537,14 +537,27 @@ function getPdfTemplateOverrides(uri, frontMatter) {
   var overrides = {
     displayHeaderFooter: vscode.workspace.getConfiguration('markdown-pdf', uri)['displayHeaderFooter'],
     headerTemplate: vscode.workspace.getConfiguration('markdown-pdf', uri)['headerTemplate'] || '',
-    footerTemplate: '<div></div>'
+    footerTemplate: vscode.workspace.getConfiguration('markdown-pdf', uri)['footerTemplate'] || ''
   };
 
-  if (!frontMatter || !frontMatter.data || !frontMatter.data.footer) {
+  if (!frontMatter || !frontMatter.data) {
     return overrides;
   }
 
-  if (frontMatter.data.footer.pageNumber === true) {
+  var hasFrontMatterHeader = !!frontMatter.data.header;
+  var hasFrontMatterFooter = !!frontMatter.data.footer;
+
+  if (hasFrontMatterHeader || hasFrontMatterFooter) {
+    overrides.headerTemplate = '<div></div>';
+    overrides.footerTemplate = '<div></div>';
+  }
+
+  if (hasFrontMatterHeader && frontMatter.data.header.pageNumber === true) {
+    overrides.displayHeaderFooter = true;
+    overrides.headerTemplate = buildFrontMatterHeaderTemplate();
+  }
+
+  if (hasFrontMatterFooter && frontMatter.data.footer.logo) {
     overrides.displayHeaderFooter = true;
     overrides.footerTemplate = buildFrontMatterFooterTemplate(frontMatter.data.footer, uri.fsPath);
   }
@@ -552,9 +565,12 @@ function getPdfTemplateOverrides(uri, frontMatter) {
   return overrides;
 }
 
+function buildFrontMatterHeaderTemplate() {
+  return "<div style=\"width: 100%; padding: 0 1cm; font-size: 9px; text-align: right;\"><span class='pageNumber'></span> / <span class='totalPages'></span></div>";
+}
+
 function buildFrontMatterFooterTemplate(footerOptions, filename) {
   var footerHeight = 14;
-  var pageNumberHtml = "<span class='pageNumber'></span> / <span class='totalPages'></span>";
   var logoHtml = '';
 
   if (footerOptions.logo) {
@@ -564,7 +580,7 @@ function buildFrontMatterFooterTemplate(footerOptions, filename) {
     }
   }
 
-  return "<div style=\"width: 100%; padding: 0 1cm; font-size: 9px;\"><div style=\"height: " + footerHeight + "px; text-align: center; line-height: " + footerHeight + "px;\">" + pageNumberHtml + "</div>" + logoHtml + "</div>";
+  return "<div style=\"width: 100%; padding: 0 1cm; font-size: 9px;\">" + logoHtml + "</div>";
 }
 
 function convertImagePathToDataUrl(src, filename) {
