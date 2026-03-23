@@ -7,7 +7,6 @@ const markdownIt = require('markdown-it');
 const puppeteer = require('puppeteer-core');
 
 const repoRoot = path.resolve(__dirname, '..', '..');
-const readmePath = path.join(repoRoot, 'README.md');
 const templatePath = path.join(repoRoot, 'template', 'template.html');
 const markdownPdfCssPath = path.join(repoRoot, 'styles', 'markdown-pdf.css');
 
@@ -15,8 +14,7 @@ function readUtf8(filePath) {
   return fs.readFileSync(filePath, 'utf8');
 }
 
-function buildHtml() {
-  const markdown = readUtf8(readmePath);
+function buildHtml(markdown, title) {
   const template = readUtf8(templatePath);
   const markdownPdfCss = readUtf8(markdownPdfCssPath);
   const md = markdownIt({ html: true, breaks: false });
@@ -24,7 +22,7 @@ function buildHtml() {
   const style = `\n<style>\n${markdownPdfCss}\n</style>\n`;
 
   return Mustache.render(template, {
-    title: 'README.md',
+    title,
     style,
     mermaid: '',
     content: md.render(markdown)
@@ -49,7 +47,7 @@ function getExecutablePath() {
   return defaultChromePath;
 }
 
-async function renderReadmePdf() {
+async function renderPdf(markdown, title = 'document.md') {
   const browser = await puppeteer.launch({
     executablePath: getExecutablePath(),
     args: ['--no-sandbox', '--disable-setuid-sandbox']
@@ -57,7 +55,7 @@ async function renderReadmePdf() {
 
   try {
     const page = await browser.newPage();
-    await page.setContent(buildHtml(), {
+    await page.setContent(buildHtml(markdown, title), {
       waitUntil: 'networkidle0'
     });
 
@@ -78,5 +76,5 @@ async function renderReadmePdf() {
 }
 
 module.exports = {
-  renderReadmePdf
+  renderPdf
 };

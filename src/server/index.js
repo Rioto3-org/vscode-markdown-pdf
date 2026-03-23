@@ -1,17 +1,36 @@
 'use strict';
 
 const http = require('http');
+const fs = require('fs');
+const path = require('path');
 const { Hono } = require('hono');
-const { renderReadmePdf } = require('./render-readme-pdf');
+const { renderPdf } = require('./render-pdf');
 
 const app = new Hono();
 const host = process.env.HOST || '127.0.0.1';
+const repoRoot = path.resolve(__dirname, '..', '..');
+const readmePath = path.join(repoRoot, 'README.md');
 
 app.get('/', async (c) => {
-  const pdf = await renderReadmePdf();
+  const markdown = fs.readFileSync(readmePath, 'utf8');
+  const pdf = await renderPdf(markdown, 'README.md');
 
   c.header('Content-Type', 'application/pdf');
   c.header('Content-Disposition', 'inline; filename="README.pdf"');
+  return c.body(pdf);
+});
+
+app.post('/render/pdf', async (c) => {
+  const body = await c.req.json().catch(() => null);
+  const markdown = body && typeof body.markdown === 'string' ? body.markdown : '';
+
+  if (!markdown.trim()) {
+    return c.json({ error: 'markdown is required' }, 400);
+  }
+
+  const pdf = await renderPdf(markdown, 'document.md');
+  c.header('Content-Type', 'application/pdf');
+  c.header('Content-Disposition', 'inline; filename="document.pdf"');
   return c.body(pdf);
 });
 
