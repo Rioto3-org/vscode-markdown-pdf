@@ -1,3 +1,10 @@
+---
+header:
+  pageNumber: true
+
+footer:
+  logo: ./Tubeclip-Banner.png
+---
 # TubeClip Markdown PDF
 
 TubeClip 向けの Markdown to PDF レンダリング基盤です。  
