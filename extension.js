@@ -553,14 +553,14 @@ function getPdfTemplateOverrides(uri, frontMatter) {
 }
 
 function buildFrontMatterFooterTemplate(footerOptions, filename) {
-  var footerHeight = 14;
+  var footerHeight = 16;
   var pageNumberHtml = "<span class='pageNumber'></span> / <span class='totalPages'></span>";
   var logoHtml = '';
 
   if (footerOptions.logo) {
     var logoHref = convertImagePathToDataUrl(footerOptions.logo, filename);
     if (logoHref) {
-      logoHtml = "<div style=\"float: left; height: " + footerHeight + "px; display: flex; align-items: center;\"><img src=\"" + logoHref + "\" style=\"display: block; max-height: 100%; width: auto;\" /></div>";
+      logoHtml = "<div style=\"float: right; height: " + footerHeight + "px; display: flex; align-items: center;\"><img src=\"" + logoHref + "\" style=\"display: block; max-height: 100%; width: auto;\" /></div>";
     }
   }
 
