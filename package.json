@@ -481,7 +481,8 @@
   },
   "scripts": {
     "vscode:prepublish": "node ./src/compile",
-    "test": "node ./test/runTest.js"
+    "test": "node ./test/runTest.js",
+    "dev:api": "node ./src/server/index.js"
   },
   "devDependencies": {
     "glob": "^7.1.6",
@@ -494,6 +495,7 @@
     "emoji-images": "^0.1.1",
     "gray-matter": "^4.0.2",
     "highlight.js": "^9.18.1",
+    "hono": "^4.12.8",
     "markdown-it": "^10.0.0",
     "markdown-it-checkbox": "^1.1.0",
     "markdown-it-container": "^2.0.0",
