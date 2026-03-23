@@ -194,12 +194,8 @@ function buildForcedFontStyle() {
   src: url("${serifBoldFont}") format("truetype");
 }
 
-html, body, p, li, blockquote, table {
+html, body, p, li, blockquote, table, h1, h2, h3, h4, h5, h6 {
   font-family: "Noto Serif JP" !important;
-}
-
-h1, h2, h3, h4, h5, h6 {
-  font-family: "Noto Sans JP" !important;
 }
 </style>\n`;
 }
