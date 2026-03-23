@@ -37,33 +37,8 @@
   "contributes": {
     "commands": [
       {
-        "command": "extension.markdown-pdf.settings",
-        "title": "Markdown PDF: Export (settings.json)",
-        "group": "markdown-pdf"
-      },
-      {
         "command": "extension.markdown-pdf.pdfViaApi",
         "title": "Markdown PDF: Export via API (pdf)",
-        "group": "markdown-pdf"
-      },
-      {
-        "command": "extension.markdown-pdf.html",
-        "title": "Markdown PDF: Export (html)",
-        "group": "markdown-pdf"
-      },
-      {
-        "command": "extension.markdown-pdf.png",
-        "title": "Markdown PDF: Export (png)",
-        "group": "markdown-pdf"
-      },
-      {
-        "command": "extension.markdown-pdf.jpeg",
-        "title": "Markdown PDF: Export (jpeg)",
-        "group": "markdown-pdf"
-      },
-      {
-        "command": "extension.markdown-pdf.all",
-        "title": "Markdown PDF: Export (all: pdf, html, png, jpeg)",
         "group": "markdown-pdf"
       }
     ],
@@ -71,59 +46,14 @@
       "commandPalette": [
         {
           "when": "resourceLangId == markdown",
-          "command": "extension.markdown-pdf.settings"
-        },
-        {
-          "when": "resourceLangId == markdown",
           "command": "extension.markdown-pdf.pdfViaApi"
-        },
-        {
-          "when": "resourceLangId == markdown",
-          "command": "extension.markdown-pdf.html"
-        },
-        {
-          "when": "resourceLangId == markdown",
-          "command": "extension.markdown-pdf.png"
-        },
-        {
-          "when": "resourceLangId == markdown",
-          "command": "extension.markdown-pdf.jpeg"
-        },
-        {
-          "when": "resourceLangId == markdown",
-          "command": "extension.markdown-pdf.all"
         }
       ],
       "editor/context": [
         {
           "when": "resourceLangId == markdown",
-          "command": "extension.markdown-pdf.settings",
-          "group": "markdown-pdf@1"
-        },
-        {
-          "when": "resourceLangId == markdown",
           "command": "extension.markdown-pdf.pdfViaApi",
           "group": "markdown-pdf@2"
-        },
-        {
-          "when": "resourceLangId == markdown",
-          "command": "extension.markdown-pdf.html",
-          "group": "markdown-pdf@3"
-        },
-        {
-          "when": "resourceLangId == markdown",
-          "command": "extension.markdown-pdf.png",
-          "group": "markdown-pdf@4"
-        },
-        {
-          "when": "resourceLangId == markdown",
-          "command": "extension.markdown-pdf.jpeg",
-          "group": "markdown-pdf@5"
-        },
-        {
-          "when": "resourceLangId == markdown",
-          "command": "extension.markdown-pdf.all",
-          "group": "markdown-pdf@6"
         }
       ]
     },

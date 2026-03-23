@@ -10,12 +10,7 @@ function activate(context) {
   init();
 
   var commands = [
-    vscode.commands.registerCommand('extension.markdown-pdf.settings', async function () { await markdownPdf('settings'); }),
     vscode.commands.registerCommand('extension.markdown-pdf.pdfViaApi', async function () { await markdownPdfViaApi(); }),
-    vscode.commands.registerCommand('extension.markdown-pdf.html', async function () { await markdownPdf('html'); }),
-    vscode.commands.registerCommand('extension.markdown-pdf.png', async function () { await markdownPdf('png'); }),
-    vscode.commands.registerCommand('extension.markdown-pdf.jpeg', async function () { await markdownPdf('jpeg'); }),
-    vscode.commands.registerCommand('extension.markdown-pdf.all', async function () { await markdownPdf('all'); })
   ];
   commands.forEach(function (command) {
     context.subscriptions.push(command);
