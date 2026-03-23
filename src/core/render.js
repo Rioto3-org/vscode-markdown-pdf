@@ -535,7 +535,7 @@ function buildFrontMatterFooterTemplate(frontMatter, sourcePath) {
   const rawLogo = frontMatter.data.footer.logo;
   const logoHref = rawLogo.startsWith('data:') || rawLogo.startsWith('http://') || rawLogo.startsWith('https://')
     ? rawLogo
-    : convertImagePathToDataUrl(rawLogo, sourcePath);
+    : '';
   if (!logoHref) {
     return '<div></div>';
   }
