@@ -2,12 +2,17 @@
 
 const http = require('http');
 const { Hono } = require('hono');
+const { renderReadmePdf } = require('./render-readme-pdf');
 
 const app = new Hono();
 const host = process.env.HOST || '127.0.0.1';
 
-app.get('/', (c) => {
-  return c.text('Hello World');
+app.get('/', async (c) => {
+  const pdf = await renderReadmePdf();
+
+  c.header('Content-Type', 'application/pdf');
+  c.header('Content-Disposition', 'inline; filename="README.pdf"');
+  return c.body(pdf);
 });
 
 const port = Number(process.env.PORT || 3000);
