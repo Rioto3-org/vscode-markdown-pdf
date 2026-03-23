@@ -94,9 +94,55 @@ function readFile(filename, encode = 'utf-8') {
   return fs.readFileSync(filename, encode);
 }
 
+function getMimeType(filename) {
+  const ext = path.extname(filename).toLowerCase();
+  if (ext === '.ttf') {
+    return 'font/ttf';
+  }
+  if (ext === '.otf') {
+    return 'font/otf';
+  }
+  if (ext === '.woff') {
+    return 'font/woff';
+  }
+  if (ext === '.woff2') {
+    return 'font/woff2';
+  }
+  return 'application/octet-stream';
+}
+
+function inlineCssAssets(css, cssFilename) {
+  return css.replace(/url\\((['"]?)([^'")]+)\\1\\)/g, (match, quote, assetPath) => {
+    if (!assetPath || assetPath.startsWith('data:')) {
+      return match;
+    }
+
+    const protocol = url.parse(assetPath).protocol;
+    if (protocol && protocol !== 'file:') {
+      return match;
+    }
+
+    const absolutePath = protocol === 'file:'
+      ? url.fileURLToPath(assetPath)
+      : path.resolve(path.dirname(cssFilename), assetPath);
+
+    if (!fs.existsSync(absolutePath)) {
+      return match;
+    }
+
+    const mimeType = getMimeType(absolutePath);
+    const base64 = fs.readFileSync(absolutePath).toString('base64');
+    return `url("data:${mimeType};base64,${base64}")`;
+  });
+}
+
 function makeCss(filename) {
   const css = readFile(filename);
-  return css ? `\n<style>\n${css}\n</style>\n` : '';
+  if (!css) {
+    return '';
+  }
+
+  return `\n<style>\n${inlineCssAssets(css, filename)}\n</style>\n`;
 }
 
 function resolveFileUri(sourcePath, href, stylesRelativePathFile) {
