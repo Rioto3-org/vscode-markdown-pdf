@@ -156,10 +156,12 @@ function makeCss(filename) {
 }
 
 function buildForcedFontStyle() {
-  const regularFont = getFontDataUrl(path.join(repoRoot, 'styles', 'Noto_Sans_JP', 'static', 'NotoSansJP-Regular.ttf'));
-  const boldFont = getFontDataUrl(path.join(repoRoot, 'styles', 'Noto_Sans_JP', 'static', 'NotoSansJP-Bold.ttf'));
+  const sansRegularFont = getFontDataUrl(path.join(repoRoot, 'styles', 'Noto_Sans_JP', 'static', 'NotoSansJP-Regular.ttf'));
+  const sansBoldFont = getFontDataUrl(path.join(repoRoot, 'styles', 'Noto_Sans_JP', 'static', 'NotoSansJP-Bold.ttf'));
+  const serifRegularFont = getFontDataUrl(path.join(repoRoot, 'styles', 'Noto_Serif_JP', 'static', 'NotoSerifJP-Regular.ttf'));
+  const serifBoldFont = getFontDataUrl(path.join(repoRoot, 'styles', 'Noto_Serif_JP', 'static', 'NotoSerifJP-Bold.ttf'));
 
-  if (!regularFont || !boldFont) {
+  if (!sansRegularFont || !sansBoldFont || !serifRegularFont || !serifBoldFont) {
     return '';
   }
 
@@ -168,17 +170,35 @@ function buildForcedFontStyle() {
   font-family: "Noto Sans JP";
   font-style: normal;
   font-weight: 400;
-  src: url("${regularFont}") format("truetype");
+  src: url("${sansRegularFont}") format("truetype");
 }
 
 @font-face {
   font-family: "Noto Sans JP";
   font-style: normal;
   font-weight: 700;
-  src: url("${boldFont}") format("truetype");
+  src: url("${sansBoldFont}") format("truetype");
 }
 
-html, body, p, li, blockquote, table, h1, h2, h3, h4, h5, h6 {
+@font-face {
+  font-family: "Noto Serif JP";
+  font-style: normal;
+  font-weight: 400;
+  src: url("${serifRegularFont}") format("truetype");
+}
+
+@font-face {
+  font-family: "Noto Serif JP";
+  font-style: normal;
+  font-weight: 700;
+  src: url("${serifBoldFont}") format("truetype");
+}
+
+html, body, p, li, blockquote, table {
+  font-family: "Noto Serif JP" !important;
+}
+
+h1, h2, h3, h4, h5, h6 {
   font-family: "Noto Sans JP" !important;
 }
 </style>\n`;
