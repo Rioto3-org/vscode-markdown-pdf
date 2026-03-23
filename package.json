@@ -42,8 +42,8 @@
         "group": "markdown-pdf"
       },
       {
-        "command": "extension.markdown-pdf.pdf",
-        "title": "Markdown PDF: Export (pdf)",
+        "command": "extension.markdown-pdf.pdfViaApi",
+        "title": "Markdown PDF: Export via API (pdf)",
         "group": "markdown-pdf"
       },
       {
@@ -75,7 +75,7 @@
         },
         {
           "when": "resourceLangId == markdown",
-          "command": "extension.markdown-pdf.pdf"
+          "command": "extension.markdown-pdf.pdfViaApi"
         },
         {
           "when": "resourceLangId == markdown",

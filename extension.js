@@ -11,7 +11,7 @@ function activate(context) {
 
   var commands = [
     vscode.commands.registerCommand('extension.markdown-pdf.settings', async function () { await markdownPdf('settings'); }),
-    vscode.commands.registerCommand('extension.markdown-pdf.pdf', async function () { await markdownPdf('pdf'); }),
+    vscode.commands.registerCommand('extension.markdown-pdf.pdfViaApi', async function () { await markdownPdfViaApi(); }),
     vscode.commands.registerCommand('extension.markdown-pdf.html', async function () { await markdownPdf('html'); }),
     vscode.commands.registerCommand('extension.markdown-pdf.png', async function () { await markdownPdf('png'); }),
     vscode.commands.registerCommand('extension.markdown-pdf.jpeg', async function () { await markdownPdf('jpeg'); }),
@@ -105,6 +105,59 @@ async function markdownPdf(option_type) {
     }
   } catch (error) {
     showErrorMessage('markdownPdf()', error);
+  }
+}
+
+async function markdownPdfViaApi() {
+  try {
+    var editor = vscode.window.activeTextEditor;
+    if (!editor) {
+      vscode.window.showWarningMessage('No active Editor!');
+      return;
+    }
+
+    if (editor.document.languageId != 'markdown') {
+      vscode.window.showWarningMessage('It is not a markdown mode!');
+      return;
+    }
+
+    var uri = editor.document.uri;
+    var mdfilename = uri.fsPath;
+    var ext = path.extname(mdfilename);
+    if (!isExistsPath(mdfilename)) {
+      if (editor.document.isUntitled) {
+        vscode.window.showWarningMessage('Please save the file!');
+        return;
+      }
+      vscode.window.showWarningMessage('File name does not get!');
+      return;
+    }
+
+    var exportFilename = getOutputDir(mdfilename.replace(ext, '.pdf'), uri);
+    var text = editor.document.getText();
+    var frontMatter = getFrontMatter(text);
+    var resolvedFrontMatter = resolveApiFrontMatter(frontMatter, mdfilename);
+    var response = await fetch('http://localhost:3000/render/pdf', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json'
+      },
+      body: JSON.stringify({
+        markdown: text,
+        frontMatter: resolvedFrontMatter
+      })
+    });
+
+    if (!response.ok) {
+      var errorText = await response.text();
+      throw new Error('API render failed: ' + response.status + ' ' + errorText);
+    }
+
+    var pdfBuffer = Buffer.from(await response.arrayBuffer());
+    fs.writeFileSync(exportFilename, pdfBuffer);
+    vscode.window.showInformationMessage('Markdown PDF: Exported via API: ' + exportFilename);
+  } catch (error) {
+    showErrorMessage('markdownPdfViaApi()', error);
   }
 }
 
@@ -531,6 +584,60 @@ function transformTemplate(templateText) {
 function getFrontMatter(text) {
   var grayMatter = require("gray-matter");
   return grayMatter(text);
+}
+
+function resolveApiFrontMatter(frontMatter, filename) {
+  var data = frontMatter && frontMatter.data ? JSON.parse(JSON.stringify(frontMatter.data)) : {};
+
+  if (data.footer && data.footer.logo) {
+    data.footer.logo = resolveApiAssetUrl(data.footer.logo, filename);
+    if (!data.footer.logo) {
+      delete data.footer.logo;
+    }
+  }
+
+  return data;
+}
+
+function resolveApiAssetUrl(src, filename) {
+  if (!src || typeof src !== 'string') {
+    return '';
+  }
+
+  if (src.indexOf('data:') === 0 || src.indexOf('http://') === 0 || src.indexOf('https://') === 0) {
+    return src;
+  }
+
+  try {
+    var assetPath = src;
+    if (!path.isAbsolute(assetPath)) {
+      assetPath = path.resolve(path.dirname(filename), assetPath);
+    }
+
+    if (!fs.existsSync(assetPath)) {
+      return '';
+    }
+
+    var ext = path.extname(assetPath).toLowerCase();
+    var mimeType = 'application/octet-stream';
+    if (ext === '.png') {
+      mimeType = 'image/png';
+    } else if (ext === '.jpg' || ext === '.jpeg') {
+      mimeType = 'image/jpeg';
+    } else if (ext === '.svg') {
+      mimeType = 'image/svg+xml';
+    } else if (ext === '.gif') {
+      mimeType = 'image/gif';
+    } else if (ext === '.webp') {
+      mimeType = 'image/webp';
+    }
+
+    var base64 = fs.readFileSync(assetPath).toString('base64');
+    return 'data:' + mimeType + ';base64,' + base64;
+  } catch (error) {
+    showErrorMessage('resolveApiAssetUrl()', error);
+    return '';
+  }
 }
 
 function getPdfTemplateOverrides(uri, frontMatter) {
