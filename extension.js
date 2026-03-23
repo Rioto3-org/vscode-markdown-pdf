@@ -553,7 +553,7 @@ function getPdfTemplateOverrides(uri, frontMatter) {
 }
 
 function buildFrontMatterFooterTemplate(footerOptions, filename) {
-  var footerHeight = 16;
+  var footerHeight = 14;
   var pageNumberHtml = "<span class='pageNumber'></span> / <span class='totalPages'></span>";
   var logoHtml = '';
 
