@@ -102,7 +102,7 @@
         },
         {
           "when": "resourceLangId == markdown",
-          "command": "extension.markdown-pdf.pdf",
+          "command": "extension.markdown-pdf.pdfViaApi",
           "group": "markdown-pdf@2"
         },
         {
