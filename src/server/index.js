@@ -4,16 +4,21 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const { Hono } = require('hono');
-const { renderPdf } = require('./render-pdf');
+const { createDefaultOptions, renderPdf } = require('../core/render');
 
 const app = new Hono();
 const host = process.env.HOST || '127.0.0.1';
 const repoRoot = path.resolve(__dirname, '..', '..');
 const readmePath = path.join(repoRoot, 'README.md');
+const defaultOptions = createDefaultOptions();
 
 app.get('/', async (c) => {
   const markdown = fs.readFileSync(readmePath, 'utf8');
-  const pdf = await renderPdf(markdown, 'README.md');
+  const pdf = await renderPdf({
+    markdown,
+    sourcePath: readmePath,
+    options: defaultOptions
+  });
 
   c.header('Content-Type', 'application/pdf');
   c.header('Content-Disposition', 'inline; filename="README.pdf"');
@@ -23,12 +28,18 @@ app.get('/', async (c) => {
 app.post('/render/pdf', async (c) => {
   const body = await c.req.json().catch(() => null);
   const markdown = body && typeof body.markdown === 'string' ? body.markdown : '';
+  const frontMatter = body && body.frontMatter && typeof body.frontMatter === 'object' ? body.frontMatter : null;
 
   if (!markdown.trim()) {
     return c.json({ error: 'markdown is required' }, 400);
   }
 
-  const pdf = await renderPdf(markdown, 'document.md');
+  const pdf = await renderPdf({
+    markdown,
+    sourcePath: path.join(repoRoot, 'document.md'),
+    options: defaultOptions,
+    frontMatter
+  });
   c.header('Content-Type', 'application/pdf');
   c.header('Content-Disposition', 'inline; filename="document.pdf"');
   return c.body(pdf);
