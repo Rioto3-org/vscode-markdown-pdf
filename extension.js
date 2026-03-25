@@ -133,7 +133,7 @@ async function markdownPdfViaApi() {
     text = resolveApiMarkdownAssets(text, mdfilename);
     var frontMatter = getFrontMatter(text);
     var resolvedFrontMatter = resolveApiFrontMatter(frontMatter, mdfilename);
-    var response = await fetch('http://localhost:3000/render/pdf', {
+    var response = await fetch('http://localhost:13720/render/pdf', {
       method: 'POST',
       headers: {
         'content-type': 'application/json'
