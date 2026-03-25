@@ -1,0 +1,13 @@
+services:
+  tubeclip-markdown-pdf-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tubeclip-markdown-pdf-api
+    restart: unless-stopped
+    environment:
+      HOST: 0.0.0.0
+      PORT: "13720"
+      PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium
+    ports:
+      - "13720:13720"

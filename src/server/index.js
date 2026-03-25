@@ -7,7 +7,7 @@ const { Hono } = require('hono');
 const { createDefaultOptions, renderPdf } = require('../core/render');
 
 const app = new Hono();
-const host = process.env.HOST || '127.0.0.1';
+const host = process.env.HOST || '0.0.0.0';
 const repoRoot = path.resolve(__dirname, '..', '..');
 const readmePath = path.join(repoRoot, 'README.md');
 const defaultOptions = createDefaultOptions();
@@ -45,7 +45,7 @@ app.post('/render/pdf', async (c) => {
   return c.body(pdf);
 });
 
-const port = Number(process.env.PORT || 3000);
+const port = Number(process.env.PORT || 13720);
 
 const server = http.createServer(async (req, res) => {
   const origin = `http://${req.headers.host || `localhost:${port}`}`;

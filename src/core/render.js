@@ -573,9 +573,14 @@ function applyFrontMatterToOptions(options, frontMatter, sourcePath) {
 
 function getExecutablePath(options) {
   const defaultChromePath = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+  const executablePathFromEnv = process.env.PUPPETEER_EXECUTABLE_PATH || process.env.CHROME_BIN || '';
 
   if (options.executablePath) {
     return options.executablePath;
+  }
+
+  if (executablePathFromEnv) {
+    return executablePathFromEnv;
   }
 
   if (fs.existsSync(defaultChromePath)) {
