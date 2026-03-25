@@ -1,57 +1,109 @@
----
-header:
-  pageNumber: true
-
-footer:
-  logo: ./Tubeclip-Banner.png
----
 # TubeClip Markdown PDF
 
-TubeClip 向けの Markdown to PDF レンダリング基盤です。  
-この repo は、ローカル API と VS Code 拡張を同居させた構成で、Markdown 文書を API 経由で PDF に変換します。
+TubeClip 向けの Markdown to PDF レンダリング基盤です。
+
+この repo は、もともとの `vscode-markdown-pdf` フォークをベースにしつつ、現在は **Docker 常駐 API + VS Code 拡張クライアント** という形で運用する前提に寄せています。
 
 現時点では `v1.0.0` 相当の初期完成版として、以下を扱えます。
 
-- VS Code からの API 経由 PDF export
-- ローカル API 経由の PDF 生成
+- Docker 常駐 API 経由の PDF 生成
+- VS Code 拡張からの API 経由 export
 - `header.pageNumber`
 - `footer.logo`
 - Markdown 内画像の API 向け解決
 - Mermaid 描画
-- 日本語フォントの埋め込み
+- 日本語フォント埋め込み
 
-## Current Scope
+## Current Architecture
 
-この repo は、従来の `vscode-markdown-pdf` フォークをベースにしつつ、TubeClip 用の API 中心構成へ移行したものです。
+構成は大きく 2 つです。
 
-現時点での正式な PDF 出力経路は 1 つです。
+- API サーバー
+  Markdown を受けて PDF を返す
+- VS Code 拡張
+  Markdown と front matter を読み取り、必要な asset を解決して API に送る
 
-- VS Code コマンド: `Markdown PDF: Export via API (pdf)`
+現時点の正式な PDF 出力経路は 1 つです。
 
-旧来のローカル Puppeteer ベース export 導線は、現時点では採用していません。
+- VS Code コマンド: `TubeClip Markdown PDF: Export via API (pdf)`
 
-## Run API
+ローカルで直接 Puppeteer を動かす旧経路は、現在の正式導線ではありません。
 
-ローカル API を起動します。
+## Run API With Docker
+
+現時点での基本運用は Docker ベースです。
+
+```bash
+docker compose up -d --build
+```
+
+停止:
+
+```bash
+docker compose down
+```
+
+既定ポート:
+
+```text
+http://localhost:13720
+```
+
+`docker-compose.yml` では `restart: unless-stopped` を使っているため、常駐向きの運用を想定しています。
+
+## Local Development API
+
+Docker ではなくローカルで直接起動したい場合は、次でも動きます。
 
 ```bash
 npm run dev:api
 ```
 
-起動後の待受先:
+または:
 
-```text
-http://127.0.0.1:3000
+```bash
+make api
 ```
 
-## Use From VS Code
+ただし、普段使いの前提は Docker 常駐です。
 
-1. この repo を VS Code で開く
-2. `F5` で Extension Development Host を起動する
+## VS Code Extension
+
+拡張側は API クライアントとして扱います。
+
+現時点では、ローカル利用を前提に `http://localhost:13720/render/pdf` を参照します。
+
+つまり、通常の使い方は以下です。
+
+1. Docker で API を起動する
+2. VS Code に拡張を入れる
 3. Markdown ファイルを開く
-4. `Markdown PDF: Export via API (pdf)` を実行する
+4. `TubeClip Markdown PDF: Export via API (pdf)` を実行する
 
-このコマンドは、Markdown 本文と front matter を読み取り、必要な asset を解決した上でローカル API に送信します。
+現時点では接続先を広く設定化していませんが、将来的には API 接続先を切り替えられるように拡張可能な構成です。
+
+## VSIX Operation
+
+VS Code 拡張は `vsix` としてパッケージし、ローカル導入する前提です。
+
+作成:
+
+```bash
+npx @vscode/vsce package
+```
+
+出力例:
+
+```text
+tubeclip-markdown-pdf-1.5.0.vsix
+```
+
+この `vsix` は Marketplace 公開なしで利用できます。  
+ローカル運用なら、例えば `~/opt` 配下のような任意の保管場所に置いて管理すれば十分です。
+
+VS Code への導入:
+
+- `Extensions: Install from VSIX...`
 
 ## API
 
@@ -80,38 +132,6 @@ Markdown を PDF に変換して返します。
 - `200 OK`
 - `Content-Type: application/pdf`
 
-### curl example
-
-```bash
-LOGO_DATA_URL="$(python3 - <<'PY'
-import base64, mimetypes
-path = './Tubeclip-Banner.png'
-mime = mimetypes.guess_type(path)[0] or 'application/octet-stream'
-with open(path, 'rb') as f:
-    print(f'data:{mime};base64,' + base64.b64encode(f.read()).decode())
-PY
-)"
-
-jq -n \
-  --rawfile markdown ./1.purchase-start.md \
-  --arg logo "$LOGO_DATA_URL" \
-  '{
-    markdown: $markdown,
-    frontMatter: {
-      header: {
-        pageNumber: true
-      },
-      footer: {
-        logo: $logo
-      }
-    }
-  }' \
-| curl -X POST http://localhost:3000/render/pdf \
-    -H 'content-type: application/json' \
-    -d @- \
-    --output ./1.purchase-start.pdf
-```
-
 ## Front Matter
 
 現時点で正式に扱う front matter は 2 つです。
@@ -136,14 +156,19 @@ footer:
 
 ## Asset Resolution
 
-リモート API 前提の責務分担として、asset 解決はクライアント側で行います。
+現時点の責務分担は明確です。
 
-現時点では VS Code 拡張が次を解決します。
+- API
+  解決済み asset を受けて描画する
+- VS Code 拡張
+  asset を解決して API に渡す
+
+現時点で拡張側が解決するもの:
 
 - Markdown 内画像
 - `frontMatter.footer.logo`
 
-つまり API は、解決済みデータを受けて描画するだけです。
+つまり API は、ローカル相対パスを直接見に行く前提ではありません。
 
 ## Mermaid
 
@@ -171,13 +196,16 @@ Mermaid は API レンダリング時に SVG として描画されます。
 - Mermaid 図の自動改ページ最適化
 - 大きい画像の自動改ページ最適化
 - 旧コードの削除リファクタリング
+- API 接続先の設定化
 
 これらは、具体的な運用課題が出た時点で次バージョンとして対応します。
 
-## Development Note
+## Development Policy
 
 現時点の `v1.0.0` 方針:
 
 - まず使える状態を優先する
-- API と VS Code クライアントを同一 repo で進める
+- Docker 常駐 API を基本運用とする
+- VS Code 拡張はローカルクライアントとして扱う
+- 将来的には接続先や運用範囲を広げられるようにしていく
 - 不要コード整理は後続バージョンでまとめて行う
