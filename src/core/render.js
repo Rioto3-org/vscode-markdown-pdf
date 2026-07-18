@@ -197,6 +197,13 @@ function buildForcedFontStyle() {
 html, body, p, li, blockquote, table, h1, h2, h3, h4, h5, h6 {
   font-family: "Noto Serif JP" !important;
 }
+
+.mermaid,
+.mermaid *,
+.mermaid svg text,
+.mermaid svg tspan {
+  font-family: "Noto Sans JP", "Noto Serif JP", sans-serif !important;
+}
 </style>\n`;
 }
 
@@ -614,6 +621,7 @@ async function renderPdf({ markdown, sourcePath, options = {}, frontMatter = nul
       console.error('[api:page:error]', error && error.stack ? error.stack : error);
     });
     await page.setContent(documentHtml, { waitUntil: 'load' });
+    await page.evaluate(() => document.fonts.ready);
     await new Promise((resolve) => setTimeout(resolve, 300));
     await renderMermaidDiagrams(page);
 
