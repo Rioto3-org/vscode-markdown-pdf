@@ -11,6 +11,21 @@ const host = process.env.HOST || '0.0.0.0';
 const repoRoot = path.resolve(__dirname, '..', '..');
 const readmePath = path.join(repoRoot, 'README.md');
 const defaultOptions = createDefaultOptions();
+const idleTimeoutMs = Number(process.env.IDLE_TIMEOUT_MS || 10 * 60 * 1000);
+
+let idleTimer = null;
+function resetIdleTimer() {
+  if (idleTimeoutMs <= 0) {
+    return;
+  }
+  clearTimeout(idleTimer);
+  idleTimer = setTimeout(() => {
+    console.log(`[api] idle for ${idleTimeoutMs}ms, exiting`);
+    process.exit(0);
+  }, idleTimeoutMs);
+}
+
+app.get('/health', (c) => c.json({ status: 'ok', pid: process.pid }));
 
 app.get('/', async (c) => {
   const markdown = fs.readFileSync(readmePath, 'utf8');
@@ -48,6 +63,7 @@ app.post('/render/pdf', async (c) => {
 const port = Number(process.env.PORT || 13720);
 
 const server = http.createServer(async (req, res) => {
+  resetIdleTimer();
   const origin = `http://${req.headers.host || `localhost:${port}`}`;
   const url = new URL(req.url || '/', origin);
   const request = new Request(url, {
@@ -90,4 +106,5 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(port, host, () => {
   console.log(`[api] listening on http://${host}:${port}`);
+  resetIdleTimer();
 });
