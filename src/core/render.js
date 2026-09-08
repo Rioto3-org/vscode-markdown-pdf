@@ -155,6 +155,14 @@ function makeCss(filename) {
   return `\n<style>\n${inlineCssAssets(css, filename)}\n</style>\n`;
 }
 
+const HEADING_FONT_WEIGHTS = {
+  h1: { weight: 800, file: 'NotoSerifJP-ExtraBold.ttf' },
+  h2: { weight: 700, file: 'NotoSerifJP-Bold.ttf' },
+  h3: { weight: 600, file: 'NotoSerifJP-SemiBold.ttf' },
+  h4: { weight: 500, file: 'NotoSerifJP-Medium.ttf' },
+  h5: { weight: 400, file: 'NotoSerifJP-Regular.ttf' }
+};
+
 function buildForcedFontStyle() {
   const sansRegularFont = getFontDataUrl(path.join(repoRoot, 'styles', 'Noto_Sans_JP', 'static', 'NotoSansJP-Regular.ttf'));
   const sansBoldFont = getFontDataUrl(path.join(repoRoot, 'styles', 'Noto_Sans_JP', 'static', 'NotoSansJP-Bold.ttf'));
@@ -164,6 +172,27 @@ function buildForcedFontStyle() {
   if (!sansRegularFont || !sansBoldFont || !serifRegularFont || !serifBoldFont) {
     return '';
   }
+
+  const headingWeightFaces = Object.values(HEADING_FONT_WEIGHTS)
+    .filter((entry) => entry.weight !== 400 && entry.weight !== 700)
+    .map((entry) => {
+      const fontDataUrl = getFontDataUrl(path.join(repoRoot, 'styles', 'Noto_Serif_JP', 'static', entry.file));
+      if (!fontDataUrl) {
+        return '';
+      }
+      return `@font-face {
+  font-family: "Noto Serif JP";
+  font-style: normal;
+  font-weight: ${entry.weight};
+  src: url("${fontDataUrl}") format("truetype");
+}`;
+    })
+    .filter(Boolean)
+    .join('\n\n');
+
+  const headingWeightRules = Object.entries(HEADING_FONT_WEIGHTS)
+    .map(([tag, entry]) => `${tag} {\n  font-weight: ${entry.weight} !important;\n}`)
+    .join('\n\n');
 
   return `\n<style>
 @font-face {
@@ -194,9 +223,13 @@ function buildForcedFontStyle() {
   src: url("${serifBoldFont}") format("truetype");
 }
 
+${headingWeightFaces}
+
 html, body, p, li, blockquote, table, h1, h2, h3, h4, h5, h6 {
   font-family: "Noto Serif JP" !important;
 }
+
+${headingWeightRules}
 
 .mermaid,
 .mermaid *,

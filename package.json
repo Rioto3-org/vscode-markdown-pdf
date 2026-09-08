@@ -2,7 +2,7 @@
   "name": "tubeclip-markdown-pdf",
   "displayName": "TubeClip Markdown PDF",
   "description": "Convert Markdown to PDF",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "publisher": "Rioto3",
   "icon": "images/icon.png",
   "engines": {

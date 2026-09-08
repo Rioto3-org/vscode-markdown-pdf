@@ -208,6 +208,18 @@ Mermaid は API レンダリング時に SVG として描画されます。
 
 フォントファイルは repo 内に同梱し、API 側で埋め込んでいます。
 
+### Heading Font Weight
+
+見出し（h1〜h5）は `Noto Serif JP` の実ウェイトを使って段階的に太さを変えています（合成太字ではありません）。
+
+| タグ | font-weight | ウェイト名 |
+| --- | --- | --- |
+| h1 | 800 | ExtraBold |
+| h2 | 700 | Bold |
+| h3 | 600 | SemiBold |
+| h4 | 500 | Medium |
+| h5 | 400 | Regular |
+
 ## Known Gaps
 
 現時点で後続課題として扱うもの:
