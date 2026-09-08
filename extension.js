@@ -4,9 +4,17 @@ var path = require('path');
 var fs = require('fs');
 var url = require('url');
 var os = require('os');
+var child_process = require('child_process');
 var INSTALL_CHECK = false;
+var EXTENSION_PATH = '';
+
+var API_BASE_URL = 'http://localhost:13720';
+var API_HEALTH_CHECK_TIMEOUT_MS = 1000;
+var API_STARTUP_TIMEOUT_MS = 20000;
+var API_STARTUP_POLL_INTERVAL_MS = 300;
 
 function activate(context) {
+  EXTENSION_PATH = context.extensionPath;
   init();
 
   var commands = [
@@ -103,6 +111,54 @@ async function markdownPdf(option_type) {
   }
 }
 
+async function isApiHealthy() {
+  try {
+    var controller = new AbortController();
+    var timer = setTimeout(function () { controller.abort(); }, API_HEALTH_CHECK_TIMEOUT_MS);
+    var response = await fetch(API_BASE_URL + '/health', { signal: controller.signal });
+    clearTimeout(timer);
+    return response.ok;
+  } catch (error) {
+    return false;
+  }
+}
+
+function sleep(ms) {
+  return new Promise(function (resolve) { setTimeout(resolve, ms); });
+}
+
+function spawnApiServer() {
+  var serverEntry = path.join(EXTENSION_PATH, 'src', 'server', 'index.js');
+  var logPath = path.join(os.tmpdir(), 'tubeclip-markdown-pdf-api.log');
+  var logFd = fs.openSync(logPath, 'a');
+
+  var child = child_process.spawn(process.platform === 'win32' ? 'node.exe' : 'node', [serverEntry], {
+    cwd: EXTENSION_PATH,
+    detached: true,
+    stdio: ['ignore', logFd, logFd]
+  });
+  child.unref();
+}
+
+async function ensureApiServerRunning() {
+  if (await isApiHealthy()) {
+    return;
+  }
+
+  spawnApiServer();
+
+  var waited = 0;
+  while (waited < API_STARTUP_TIMEOUT_MS) {
+    await sleep(API_STARTUP_POLL_INTERVAL_MS);
+    waited += API_STARTUP_POLL_INTERVAL_MS;
+    if (await isApiHealthy()) {
+      return;
+    }
+  }
+
+  throw new Error('API server did not become ready within ' + API_STARTUP_TIMEOUT_MS + 'ms. Check ' + path.join(os.tmpdir(), 'tubeclip-markdown-pdf-api.log'));
+}
+
 async function markdownPdfViaApi() {
   try {
     var editor = vscode.window.activeTextEditor;
@@ -128,12 +184,14 @@ async function markdownPdfViaApi() {
       return;
     }
 
+    await ensureApiServerRunning();
+
     var exportFilename = getOutputDir(mdfilename.replace(ext, '.pdf'), uri);
     var text = editor.document.getText();
     text = resolveApiMarkdownAssets(text, mdfilename);
     var frontMatter = getFrontMatter(text);
     var resolvedFrontMatter = resolveApiFrontMatter(frontMatter, mdfilename);
-    var response = await fetch('http://localhost:13720/render/pdf', {
+    var response = await fetch(API_BASE_URL + '/render/pdf', {
       method: 'POST',
       headers: {
         'content-type': 'application/json'
