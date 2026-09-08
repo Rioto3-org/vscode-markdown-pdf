@@ -83,15 +83,6 @@ IDLE_TIMEOUT_MS=1800000 npm run dev:api  # 30分に延長する例
 export PUPPETEER_EXECUTABLE_PATH="/Applications/Chromium.app/Contents/MacOS/Chromium"
 ```
 
-## Docker (Legacy / Optional)
-
-旧運用のDocker常駐構成もまだ残していますが、非推奨です。Debianミラー側の署名検証問題でビルドが失敗することがあり、単一Mac・低頻度利用という実態に対して運用コストが見合わないため、ホスト型コールドスタートへの移行後に削除予定です。
-
-```bash
-docker compose up -d --build
-docker compose down
-```
-
 ## VS Code Extension
 
 拡張側は API クライアントであると同時に、APIの起動保証も担います。
@@ -225,7 +216,6 @@ Mermaid は API レンダリング時に SVG として描画されます。
 - 大きい画像の自動改ページ最適化
 - 旧コードの削除リファクタリング
 - API 接続先の設定化
-- Docker関連ファイル（`Dockerfile` / `docker-compose.yml`）の削除（ホスト型コールドスタート運用の安定確認後）
 
 これらは、具体的な運用課題が出た時点で次バージョンとして対応します。
 

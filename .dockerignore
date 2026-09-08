@@ -1,6 +1,0 @@
-node_modules
-.git
-.DS_Store
-.api.pid
-.api.log
-*.vsix
